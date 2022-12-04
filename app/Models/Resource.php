@@ -8,10 +8,12 @@ use App\Models\Term;
 use App\OperatingSystem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Resource extends Model implements Completable
 {
     use HasFactory;
+    use SoftDeletes;
 
     public const VIDEO_TYPE = 'video';
     public const COURSE_TYPE = 'course';
@@ -27,6 +29,9 @@ class Resource extends Model implements Completable
         self::ARTICLE_TYPE,
     ];
 
+    public const NOT_TRASHED = 'no';
+    public const TRASHED = 'yes';
+
     protected $appends = ['is_new'];
     protected $guarded = ['id'];
     protected $casts = [
@@ -37,6 +42,29 @@ class Resource extends Model implements Completable
         'expiration_date' => 'datetime',
     ];
 
+    public static function getNewExpirationDate()
+    {
+        return now()->addMonths(config('resources.default_expiration_length'));
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($resource) {
+            if ($resource->can_expire) {
+                $resource->expiration_date = self::getNewExpirationDate();
+            }
+        });
+
+        static::updating(function ($resource) {
+            if (! $resource->isDirty('can_expire')) {
+                return;
+            }
+
+            $resource->expiration_date = $resource->can_expire
+                ? self::getNewExpirationDate()
+                : null;
+        });
+    }
 
     public function modules()
     {
@@ -104,6 +132,11 @@ class Resource extends Model implements Completable
         return $this->expiration_date->diffForHumans();
     }
 
+    public function getIsTrashedAttribute()
+    {
+        return $this->deleted_at ? self::TRASHED : self::NOT_TRASHED;
+    }
+
     public function isAssignedToAModule()
     {
         return collect($this->modules)->isNotEmpty();
@@ -111,12 +144,12 @@ class Resource extends Model implements Completable
 
     public function isExpired()
     {
-        return $this->expiration_date->isPast();
+        return $this->expiration_date?->isPast();
     }
 
     public function isExpiring()
     {
-        return $this->expiration_date->between(
+        return $this->expiration_date?->between(
             now()->toDateTimeString(),
             now()->addDays(15)->toDateTimeString(),
         );

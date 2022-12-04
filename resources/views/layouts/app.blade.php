@@ -3,7 +3,7 @@
 @php
 $fullPageTitle = (isset($pageTitle) ? "{$pageTitle} | " : '') . __('Onramp to Laravel');
 @endphp
-<html lang="{{ locale() }}" style="scroll-behavior:smooth;">
+<html lang="{{ locale() }}" class="scroll-padding-header" style="scroll-behavior:smooth;">
 
 <head>
     <meta charset="utf-8">
@@ -24,7 +24,7 @@ $fullPageTitle = (isset($pageTitle) ? "{$pageTitle} | " : '') . __('Onramp to La
 
     <link href="https://fonts.googleapis.com/css?family=Work+Sans:400,600,700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="{{ mix('css/app.css') }}">
+    @vite(['resources/sass/app.scss'])
 
     <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
 
@@ -58,8 +58,10 @@ $fullPageTitle = (isset($pageTitle) ? "{$pageTitle} | " : '') . __('Onramp to La
 
         const isInViewport = (element) => {
             const rect = element.getBoundingClientRect();
+            const offset = (rect.bottom - rect.top) / 2;
+
             return (
-                rect.top >= 0 &&
+                (rect.top === 0 || Math.abs(rect.top + offset) <= rect.bottom) &&
                 rect.left >= 0 &&
                 rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
                 rect.right <= (window.innerWidth || document.documentElement.clientWidth)
@@ -89,18 +91,18 @@ $fullPageTitle = (isset($pageTitle) ? "{$pageTitle} | " : '') . __('Onramp to La
         <div id="app-body">
             @includeWhen(! request()->routeIs('wizard.index'), 'partials.choose-track')
             @yield('content')
-
-            @include('partials.navigation.footer')
+           
+            @include('partials.navigation.back-to-top')
 
             <!-- toast notifications -->
             @if (session('toast'))
             <toast message="{{ session('toast') }}"></toast>
             @endif
         </div>
+        @include('partials.navigation.footer')
     </div>
     @routes
-    <script src="{{ mix('js/app.js') }}"></script>
-    <script src="{{ mix('js/scripts.js') }}"></script>
+    @vite(['resources/js/app.js', 'resources/js/scripts.js'])
 </body>
 
 </html>
