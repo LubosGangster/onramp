@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Resource;
+use App\Models\Term;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -38,7 +39,7 @@ class ResourceAccessTest extends TestCase
     function resource_belongs_to_many_terms()
     {
         $resource = Resource::factory()->create();
-        $term = Resource::factory()->create();
+        $term = Term::factory()->create();
         $this->assertInstanceOf('Illuminate\Database\Eloquent\Collection', $resource->terms);
     }
 }
