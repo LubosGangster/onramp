@@ -15,8 +15,6 @@ class SkillTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 
-    public $carbon;
-
     public function setUp(): void
     {
         parent::setUp();
