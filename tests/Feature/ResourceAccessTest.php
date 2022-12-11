@@ -34,4 +34,11 @@ class ResourceAccessTest extends TestCase
 
         $this->assertTrue($user->can('update', new Resource));
     }
+    /** @test */
+    function resource_belongs_to_many_terms()
+    {
+        $resource = Resource::factory()->create();
+        $term = Resource::factory()->create();
+        $this->assertInstanceOf('Illuminate\Database\Eloquent\Collection', $resource->terms);
+    }
 }
